@@ -9,14 +9,13 @@ Created on Tue Oct 23 13:43:26 2018
 S0 - susceptable
 I0 - infected 
 R0 - recovered
+D - dead 
 
-mu - the probability of somone getting susceptable with a vaccine
-    36% effective from time
-        http://time.com/5415276/flu-shot-2018/
-        https://www.cdc.gov/mmwr/volumes/67/wr/mm6706a2.htm?s_cid=mm6706a2_w
 alpha - the probability of being infected with teh corona viris
+https://www.pharmaceutical-technology.com/news/china-wuhan-coronavirus-deaths-12-feb/
 
-beta - the probability of someone recovering teh corona virus
+beta - the probability of someone recovering the corona virus
+https://www.statnews.com/2020/02/04/two-scenarios-if-new-coronavirus-isnt-contained/
 
 delta - the death rate of the corona virus
 https://www.worldometers.info/coronavirus/coronavirus-death-rate/
@@ -28,21 +27,24 @@ import pylab
     
 
 # Parameters
-alpha = .89 #######
-beta = .3
-delta = .1
+alpha = .8 
+beta = .051
+delta = .037
+
+#if you want to include the natural population growths and deaths
+#the natual population increase each year
+#zeta = .0179
+#gamma = .0035
 
 
 # Initial condition
-S0 = 58
-I0 = 5
-R0 = 0
-#dead
-#D0 = 0
+S0 = 5832710
+I0 = 58
+R0 = 15
 
-Y0 = [ S0, I0, R0 ]
+Y0 = [ S0, I0, R0]
 
-tMax = 1
+tMax = 2
 
 # Time vector for solution
 T = scipy.linspace(0, tMax, 10)
@@ -50,7 +52,7 @@ T = scipy.linspace(0, tMax, 10)
 
 # This defines a function that is the right-hand side of the ODEs
 # Warning!  Whitespace at the begining of a line is significant!
-def rhs(Y, t, beta, gamma, mu):
+def rhs(Y, t, alpha, beta, delta):
     '''
     SIR model.
     
@@ -62,21 +64,26 @@ def rhs(Y, t, beta, gamma, mu):
     S = Y[0]
     I = Y[1]
     R = Y[2]
-    #D = Y[3]
-    
-    N = (5832710) 
-    #number of people getting the flu shot
+
+    # the total number of people in the country of signapore, increasing 
+    # by the natural rate of increase
+    N = (5832710 * 1.79)
+   
     
     # The right-hand sides
-    dS =  alpha * I * S  - beta * I - delta * I 
-    dI = -alpha * I * S 
+    dI =  alpha * I * S  - beta * I - delta * I
+    dS = -alpha * I * S 
     dR = beta * I
+    
     
     
     # Convert meaningful component vectors into a single vector
     dY = [ dS, dI, dR ]
 
     return dY
+
+
+
 
 # Integrate the ODE
 # Warning!  The ODE solver over-writes the initial value.
@@ -91,8 +98,9 @@ S = solution[:, 0]
 I = solution[:, 1]
 R = solution[:, 2]
 
-#N = S + I + R
-#D = delta * I
+D = delta * I
+N = S + I + R 
+
 
 
 # Make plots
@@ -106,14 +114,15 @@ R = solution[:, 2]
 
 pylab.figure()
 
-pylab.plot(T, S,
-           T, I ,
-           T, R,)
+pylab.plot(T, S / N,
+           T, I / N,
+           T, R / N,
+           T, D / N)
 
 pylab.xlabel('Time')
-pylab.ylabel('Population')
+pylab.ylabel('Proportion')
 
-pylab.legend([ 'Susceptible', 'Infective', 'Recovered'])
+pylab.legend([ 'Susceptible', 'Infected', 'Recovered', 'Dead'])
 
 # Actually display the plot
 pylab.show()
